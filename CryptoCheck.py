@@ -1,3 +1,5 @@
+import time
+
 from libs import CryptoAlgorithm
 import sys
 import json
@@ -13,6 +15,7 @@ class CryptoChecker(object):
             "DECRYPT": {"FULL-PASS": 0, "PARTIAL-PASS": 0, "FAIL": 0}
         }
         self.debug = False
+        self.log_session = True
 
     def setup_algorithm(self, filename=None, algorithm=None, key=None) -> CryptoAlgorithm:
         algorithm = self.input_parser.guess(filename) if not algorithm else algorithm
@@ -40,6 +43,7 @@ class CryptoChecker(object):
             if self.debug:
                 print(f"{cipher} : {data['cipher']}")
             self.summary["ENCRYPT"]["FAIL"] += 1
+        return cipher
 
     def verify_decrypt(self, data):
         plain = self.algorithm.decrypt(data["cipher"])
@@ -49,14 +53,15 @@ class CryptoChecker(object):
             self.summary["DECRYPT"]["PARTIAL-PASS"] += 1
         else:
             self.summary["DECRYPT"]["FAIL"] += 1
+        return plain
 
     def check(self, filename):
         data = self.input_parser.parse(filename=filename).get_data()
         for d in data:
             try:
                 self.setup_algorithm(algorithm=d["type"], key=d["key"])
-                self.verify_encrypt(d)
-                self.verify_decrypt(d)
+                d["test_ciphertext"] = self.verify_encrypt(d)
+                d["test_plaintext"] = self.verify_decrypt(d)
             except TypeError as e:
                 print(f"[-] Key: {d['key']}")
                 print(f"[-] Plain: {d['plain']}")
@@ -67,7 +72,14 @@ class CryptoChecker(object):
                 print(f"[-] Plain: {d['plain']}")
                 print(f"[-] Unexpected Error: {e}")
                 sys.exit(1)
+        if self.log_session:
+            self.save_data(data)
         print(json.dumps(self.summary))
+
+    def save_data(self, data):
+        label = time.strftime("%Y%m%d%H%M%S", time.localtime())
+        with open(f"session_{label}.json", "w") as out:
+            out.write(json.dumps(data))
 
 
 if __name__ == "__main__":
