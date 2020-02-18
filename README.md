@@ -17,14 +17,14 @@ The tool operates in three steps:
     * Plaintext
     * Ciphertext
 3. Indpendently encrypt/decrypt the data, checking if:
-    * encrypt(key,plaintext) == ciphertext
+    * encrypt(key, plaintext) == ciphertext
     * decrypt(key, ciphertext) == plaintext
 
 
 ## Usage
 
 ```
-python CryptoCheck.py [input-file]
+$ python CryptoCheck.py examples/ecb.txt
 [+] Guessed filetype: aes-ecb
 {"ENCRYPT": {"FULL-PASS": 0, "PARTIAL-PASS": 5, "FAIL": 0}, "DECRYPT": {"FULL-PASS": 5, "PARTIAL-PASS": 0, "FAIL": 0}}
 
