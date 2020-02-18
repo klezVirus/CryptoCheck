@@ -1,5 +1,4 @@
 import time
-
 from libs import CryptoAlgorithm
 import sys
 import json
@@ -14,8 +13,8 @@ class CryptoChecker(object):
             "ENCRYPT": {"FULL-PASS": 0, "PARTIAL-PASS": 0, "FAIL": 0},
             "DECRYPT": {"FULL-PASS": 0, "PARTIAL-PASS": 0, "FAIL": 0}
         }
-        self.debug = False
-        self.log_session = True
+        self.debug = {"encrypt": True, "decrypt": False}
+        self.log_session = False
 
     def setup_algorithm(self, filename=None, algorithm=None, key=None) -> CryptoAlgorithm:
         algorithm = self.input_parser.guess(filename) if not algorithm else algorithm
@@ -36,11 +35,11 @@ class CryptoChecker(object):
         if cipher == data["cipher"]:
             self.summary["ENCRYPT"]["FULL-PASS"] += 1
         elif data["cipher"] in cipher:
-            if self.debug:
+            if self.debug["encrypt"]:
                 print(f"{cipher} : {data['cipher']}")
             self.summary["ENCRYPT"]["PARTIAL-PASS"] += 1
         else:
-            if self.debug:
+            if self.debug["encrypt"]:
                 print(f"{cipher} : {data['cipher']}")
             self.summary["ENCRYPT"]["FAIL"] += 1
         return cipher
@@ -50,8 +49,12 @@ class CryptoChecker(object):
         if plain == data["plain"]:
             self.summary["DECRYPT"]["FULL-PASS"] += 1
         elif data["plain"] in plain:
+            if self.debug["decrypt"]:
+                print(f"{plain} : {data['cipher']}")
             self.summary["DECRYPT"]["PARTIAL-PASS"] += 1
         else:
+            if self.debug["decrypt"]:
+                print(f"{plain} : {data['cipher']}")
             self.summary["DECRYPT"]["FAIL"] += 1
         return plain
 
@@ -74,7 +77,7 @@ class CryptoChecker(object):
                 sys.exit(1)
         if self.log_session:
             self.save_data(data)
-        print(json.dumps(self.summary))
+        print(f"[+] Summary: {json.dumps(self.summary)}")
 
     def save_data(self, data):
         label = time.strftime("%Y%m%d%H%M%S", time.localtime())
