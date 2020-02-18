@@ -1,14 +1,12 @@
-import CryptoAlgorithm
+import lib.CryptoAlgorithm
 import sys
-import argparse
 import json
-
-from InputParser import InputParser
+from lib.InputParser import InputParser
 
 
 class CryptoChecker(object):
     def __init__(self):
-        self.input_parser = InputParser()
+        self.input_parser = lib.InputParser()
         self.algorithm = None
         self.summary = {
             "ENCRYPT": {"FULL-PASS": 0, "PARTIAL-PASS": 0, "FAIL": 0},
@@ -16,16 +14,16 @@ class CryptoChecker(object):
         }
         self.debug = False
 
-    def setup_algorithm(self, filename=None, algorithm=None, key=None) -> CryptoAlgorithm:
+    def setup_algorithm(self, filename=None, algorithm=None, key=None) -> lib.CryptoAlgorithm:
         algorithm = self.input_parser.guess(filename) if not algorithm else algorithm
         if algorithm == "hmac" or algorithm == "sha-256":
-            self.algorithm = CryptoAlgorithm.HS256(key=key)
+            self.algorithm = lib.CryptoAlgorithm.HS256(key=key)
         elif algorithm == "aes-ecb":
-            self.algorithm = CryptoAlgorithm.AES_ECB(key=key)
+            self.algorithm = lib.CryptoAlgorithm.AES_ECB(key=key)
         elif algorithm == "aes-ctr":
-            self.algorithm = CryptoAlgorithm.AES_CTR(key=key)
+            self.algorithm = lib.CryptoAlgorithm.AES_CTR(key=key)
         elif algorithm == "aes-kw":
-            self.algorithm = CryptoAlgorithm.AES_KW(key=key)
+            self.algorithm = lib.CryptoAlgorithm.AES_KW(key=key)
         else:
             print(f"[-] Algorithm `{algorithm}` not supported")
             sys.exit(1)
