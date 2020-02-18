@@ -1,0 +1,2 @@
+# CryptoCheck
+Encryption algorithms' validator
