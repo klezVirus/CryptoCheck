@@ -3,18 +3,19 @@ from libs import CryptoAlgorithm
 import sys
 import json
 from libs.InputParser import InputParser
+import argparse
 
 
 class CryptoChecker(object):
-    def __init__(self):
+    def __init__(self, debug=0, save_session=False):
         self.input_parser = InputParser()
         self.algorithm = None
         self.summary = {
             "ENCRYPT": {"FULL-PASS": 0, "PARTIAL-PASS": 0, "FAIL": 0},
             "DECRYPT": {"FULL-PASS": 0, "PARTIAL-PASS": 0, "FAIL": 0}
         }
-        self.debug = {"encrypt": True, "decrypt": False}
-        self.log_session = False
+        self.debug = {"encrypt":  bool(int(bin(debug)[2:].zfill(2)[1])), "decrypt":  bool(int(bin(debug)[2:].zfill(2)[0]))}
+        self.log_session = save_session
 
     def setup_algorithm(self, filename=None, algorithm=None, key=None) -> CryptoAlgorithm:
         algorithm = self.input_parser.guess(filename) if not algorithm else algorithm
@@ -86,8 +87,18 @@ class CryptoChecker(object):
 
 
 if __name__ == "__main__":
-    checker = CryptoChecker()
-    if len(sys.argv) > 1:
-        s = sys.argv[1]
-        print(f"[+] Guessed filetype: {checker.input_parser.guess(s)}")
-        checker.check(s)
+    parser = argparse.ArgumentParser(description='Codegrepper - A simple code auditor by d3adc0de', add_help=True)
+
+    parser.add_argument(
+        '-d', '--debug', required=False, type=int, default=0, help='Debug mode {0: None, 1: Encryption, 2: Decryption, 3: All}')
+    parser.add_argument(
+        '-s', '--save', required=False, action='store_true', default=False, help='Save check session to file')
+    parser.add_argument(
+        'file', type=str, help='File to parse')
+
+    args = parser.parse_args()
+
+    checker = CryptoChecker(debug=args.debug, save_session=args.save)
+    s = args.file
+    print(f"[+] Guessed filetype: {checker.input_parser.guess(s)}")
+    checker.check(s)
