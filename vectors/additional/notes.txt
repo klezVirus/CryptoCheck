@@ -1,0 +1,12 @@
+# HMAC - SHA
+As one-way functions, the decrypt part should always be FAIL (or partial-pass, even if unlikely)
+The vector with length 0, 00, is interpreted literally by a ZERO from the python script, while it is interpreted as a NULL byte by the AutoTestingTool, for this reason the hashes don't match
+
+# MonteCarlo - MCT Files
+MonteCarlo has not been implemented in this version of the CryptoChecker, so these files were not tested
+
+# Random Generators
+There was no reason to test the PRNG
+
+# Minor errors
+If there is a doubt regarding a check, ensure that the plaintexts used were the same (enc), or the ciphertexts (dec)

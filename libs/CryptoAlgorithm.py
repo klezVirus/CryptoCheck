@@ -99,6 +99,7 @@ class AES_ECB(CryptoAlgorithm):
 
     def decrypt(self, message):
         message = binascii.unhexlify(message)
+
         cipher = AES.new(self.key, AES.MODE_ECB)
         try:
             plaintext = unpad(cipher.decrypt(message), AES.block_size)

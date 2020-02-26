@@ -1,3 +1,4 @@
+import os
 import time
 from libs import CryptoAlgorithm
 import sys
@@ -7,18 +8,25 @@ import argparse
 
 
 class CryptoChecker(object):
-    def __init__(self, debug=0, save_session=False):
+    def __init__(self, debug=0, extra_debug=False, save_session=False, label=""):
         self.input_parser = InputParser()
         self.algorithm = None
+        self.label = label
+        self.algorithm_name = ""
         self.summary = {
             "ENCRYPT": {"FULL-PASS": 0, "PARTIAL-PASS": 0, "FAIL": 0},
             "DECRYPT": {"FULL-PASS": 0, "PARTIAL-PASS": 0, "FAIL": 0}
         }
-        self.debug = {"encrypt":  bool(int(bin(debug)[2:].zfill(2)[1])), "decrypt":  bool(int(bin(debug)[2:].zfill(2)[0]))}
+        self.extra_debug = extra_debug
+        self.debug = {
+            "encrypt":  bool(int(bin(debug)[2:].zfill(2)[1])),
+            "decrypt":  bool(int(bin(debug)[2:].zfill(2)[0])),
+        }
         self.log_session = save_session
 
     def setup_algorithm(self, filename=None, algorithm=None, key=None) -> CryptoAlgorithm:
         algorithm = self.input_parser.guess(filename) if not algorithm else algorithm
+        self.algorithm_name = algorithm
         if algorithm == "hmac" or algorithm == "sha-256":
             self.algorithm = CryptoAlgorithm.HS256(key=key)
         elif algorithm == "aes-ecb":
@@ -32,32 +40,42 @@ class CryptoChecker(object):
             sys.exit(1)
 
     def verify_encrypt(self, data):
-        cipher = self.algorithm.encrypt(data["plain"])
-        if cipher == data["cipher"]:
-            self.summary["ENCRYPT"]["FULL-PASS"] += 1
-        elif data["cipher"] in cipher:
-            if self.debug["encrypt"]:
-                print(f"{cipher} : {data['cipher']}")
-            self.summary["ENCRYPT"]["PARTIAL-PASS"] += 1
-        else:
-            if self.debug["encrypt"]:
-                print(f"{cipher} : {data['cipher']}")
+        try:
+            cipher = self.algorithm.encrypt(data["plain"])
+            if cipher == data["cipher"]:
+                self.summary["ENCRYPT"]["FULL-PASS"] += 1
+            elif data["cipher"] in cipher:
+                if self.debug["encrypt"]:
+                    print(f"{cipher} : {data['cipher']}")
+                self.summary["ENCRYPT"]["PARTIAL-PASS"] += 1
+            else:
+                if self.debug["encrypt"]:
+                    print(f"{cipher} : {data['cipher']}")
+                self.summary["ENCRYPT"]["FAIL"] += 1
+            return cipher
+        except Exception as e:
+            print(f"[-] Error: {e}")
             self.summary["ENCRYPT"]["FAIL"] += 1
-        return cipher
+            return "ERROR"
 
     def verify_decrypt(self, data):
-        plain = self.algorithm.decrypt(data["cipher"])
-        if plain == data["plain"]:
-            self.summary["DECRYPT"]["FULL-PASS"] += 1
-        elif data["plain"] in plain:
-            if self.debug["decrypt"]:
-                print(f"{plain} : {data['cipher']}")
-            self.summary["DECRYPT"]["PARTIAL-PASS"] += 1
-        else:
-            if self.debug["decrypt"]:
-                print(f"{plain} : {data['cipher']}")
+        try:
+            plain = self.algorithm.decrypt(data["cipher"])
+            if plain == data["plain"]:
+                self.summary["DECRYPT"]["FULL-PASS"] += 1
+            elif data["plain"] in plain:
+                if self.debug["decrypt"]:
+                    print(f"{plain} : {data['cipher']}")
+                self.summary["DECRYPT"]["PARTIAL-PASS"] += 1
+            else:
+                if self.debug["decrypt"]:
+                    print(f"{plain} : {data['cipher']}")
+                self.summary["DECRYPT"]["FAIL"] += 1
+            return plain
+        except Exception as e:
+            print(f"[-] Error: {e}")
             self.summary["DECRYPT"]["FAIL"] += 1
-        return plain
+            return "ERROR"
 
     def check(self, filename):
         data = self.input_parser.parse(filename=filename).get_data()
@@ -77,28 +95,41 @@ class CryptoChecker(object):
                 print(f"[-] Unexpected Error: {e}")
                 sys.exit(1)
         if self.log_session:
-            self.save_data(data)
+            self.save_data(data, copyfilename=filename)
         print(f"[+] Summary: {json.dumps(self.summary)}")
 
-    def save_data(self, data):
-        label = time.strftime("%Y%m%d%H%M%S", time.localtime())
-        with open(f"session_{label}.json", "w") as out:
+    def save_data(self, data, copyfilename=None):
+        try:
+            os.makedirs('sessions')
+        except Exception as e:
+            if self.extra_debug:
+                print(f"[-] Can't create session directory: {e}")
+        if copyfilename:
+            label = f"{self.label}{os.path.splitext(os.path.basename(copyfilename))[0]}_{time.strftime('%Y%m%d%H%M%S', time.localtime())}"
+        else:
+            label = f"{self.label}{self.algorithm_name}_{time.strftime('%Y%m%d%H%M%S', time.localtime())}"
+
+        with open(f"sessions/session_{label}.json", "w") as out:
             out.write(json.dumps(data))
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Codegrepper - A simple code auditor by d3adc0de', add_help=True)
+    parser = argparse.ArgumentParser(description='CryptoCheck - A simple encryption algorithm validator based on NIST CAVS', add_help=True)
 
     parser.add_argument(
         '-d', '--debug', required=False, type=int, default=0, help='Debug mode {0: None, 1: Encryption, 2: Decryption, 3: All}')
     parser.add_argument(
         '-s', '--save', required=False, action='store_true', default=False, help='Save check session to file')
     parser.add_argument(
+        '-dd', '--extradebug', required=False, action='store_true', default=False, help='Enable extra debug messages')
+    parser.add_argument(
+        '-l', '--label', required=False, type=str, default="", help='Label to add to the session file')
+    parser.add_argument(
         'file', type=str, help='File to parse')
 
     args = parser.parse_args()
 
-    checker = CryptoChecker(debug=args.debug, save_session=args.save)
+    checker = CryptoChecker(debug=args.debug, extra_debug=args.extradebug, save_session=args.save, label=args.label)
     s = args.file
     print(f"[+] Guessed filetype: {checker.input_parser.guess(s)}")
     checker.check(s)

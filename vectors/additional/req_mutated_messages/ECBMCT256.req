@@ -1,0 +1,18 @@
+# CAVS 11.1
+# Config info for aes_values
+# AESVS MCT test data for ECB
+# State : Encrypt and Decrypt
+# Key Length : 256
+# Generated on Fri Apr 22 15:11:31 2011
+
+[ENCRYPT]
+
+KEY = f9e8389f5b80712e3886cc1fa2d28a3b8c9cd88a2d4a54c6aa86ce0fef944be0
+PLAINTEXT = b379777f9050e2a818f2940cbbd9aba4
+
+
+
+[DECRYPT]
+
+KEY = 2b09ba39b834062b9e93f48373b8dd018dedf1e5ba1b8af831ebbacbc92a2643
+CIPHERTEXT = 2a94c88a9919b7ec89a56f9e6a6ead227b514cf7bd49ab5314ea7f124a36017a
