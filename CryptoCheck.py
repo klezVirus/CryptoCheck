@@ -77,13 +77,22 @@ class CryptoChecker(object):
             self.summary["DECRYPT"]["FAIL"] += 1
             return "ERROR"
 
+    def update_state(self, data):
+        if "verify-ciphertext" in data.keys():
+            data["encryption-check"] = str(data["verify-ciphertext"] == data["cipher"]
+                                           or
+                                           data["cipher"] in data["verify-ciphertext"])
+        if "verify-plaintext" in data.keys():
+            data["decryption-check"] = str(data["verify-plaintext"] == data["plain"])
+
     def check(self, filename):
         data = self.input_parser.parse(filename=filename).get_data()
         for d in data:
             try:
                 self.setup_algorithm(algorithm=d["type"], key=d["key"])
-                d["test_ciphertext"] = self.verify_encrypt(d)
-                d["test_plaintext"] = self.verify_decrypt(d)
+                d["verify-ciphertext"] = self.verify_encrypt(d)
+                d["verify-plaintext"] = self.verify_decrypt(d)
+                self.update_state(d)
             except TypeError as e:
                 print(f"[-] Key: {d['key']}")
                 print(f"[-] Plain: {d['plain']}")
