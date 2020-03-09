@@ -86,6 +86,7 @@ PLAINTEXT = 00000000000000000000000000000000
 
 ## Limitations
 
+* Currently, the tool has been tested against AES-ECB, HMAC-256, SHA256, KW-AD, KW-AE. Other algorithms are still under development/testing.
 * Currently, the tool doesn't implement MCT tests, but this feature will be added in future versions.
 * Currently, the generation tool doesn't strictly follow FIPS vector file format. Even if unlikely, this can cause other tools (designed for these files), to fail while parsing them. This will be fixed in future versions.
 
