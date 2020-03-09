@@ -1,12 +1,12 @@
 # HMAC - SHA
 As one-way functions, the decrypt part should always be FAIL (or partial-pass, even if unlikely).
-The vector with length 0, 00, is interpreted literally by a ZERO from the python script, while it is interpreted as a NULL byte by the AutoTestingTool, for this reason the hashes don't match.
+The vector with length 0, 00, is interpreted literally by a ZERO from the python script, while it is interpreted as a NULL byte by FIPS, for this reason the hashes don't match.
 
 # MonteCarlo - MCT Files
-MonteCarlo has not been implemented in this version of the CryptoChecker, so these files were not tested.
+MonteCarlo has not been implemented in this version of the CryptoChecker, so these files cannot be tested.
 
 # Random Generators
-There was no reason to test the PRNG.
+PRNG tests are not implemented.
 
 # PARTIAL-PASS
 The vectors files from NIST applies a length cutting on the final hash/cipher payload.
