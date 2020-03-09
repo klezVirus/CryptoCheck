@@ -39,7 +39,7 @@ class CryptoChecker(object):
             print(f"[-] Algorithm `{algorithm}` not supported")
             sys.exit(1)
 
-    def verify_encrypt(self, data):
+    def verify_encrypt(self, data, strict_mode=False):
         try:
             cipher = self.algorithm.encrypt(data["plain"])
             if cipher == data["cipher"]:
@@ -47,7 +47,10 @@ class CryptoChecker(object):
             elif data["cipher"] in cipher:
                 if self.debug["encrypt"]:
                     print(f"{cipher} : {data['cipher']}")
-                self.summary["ENCRYPT"]["PARTIAL-PASS"] += 1
+                if strict_mode:
+                    self.summary["ENCRYPT"]["PARTIAL-PASS"] += 1
+                else:
+                    self.summary["ENCRYPT"]["FULL-PASS"] += 1
             else:
                 if self.debug["encrypt"]:
                     print(f"{cipher} : {data['cipher']}")
@@ -58,7 +61,7 @@ class CryptoChecker(object):
             self.summary["ENCRYPT"]["FAIL"] += 1
             return "ERROR"
 
-    def verify_decrypt(self, data):
+    def verify_decrypt(self, data, strict_mode=False):
         try:
             plain = self.algorithm.decrypt(data["cipher"])
             if plain == data["plain"]:
@@ -66,7 +69,10 @@ class CryptoChecker(object):
             elif data["plain"] in plain:
                 if self.debug["decrypt"]:
                     print(f"{plain} : {data['cipher']}")
-                self.summary["DECRYPT"]["PARTIAL-PASS"] += 1
+                if strict_mode:
+                    self.summary["DECRYPT"]["PARTIAL-PASS"] += 1
+                else:
+                    self.summary["DECRYPT"]["FULL-PASS"] += 1
             else:
                 if self.debug["decrypt"]:
                     print(f"{plain} : {data['cipher']}")
